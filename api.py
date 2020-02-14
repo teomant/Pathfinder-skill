@@ -18,7 +18,7 @@ sessionStorage = {}
 # Подсказки
 tips = []
 
-@app.before_first_request()
+@app.before_first_request
 def initTips():
     logging.log(logging.INFO, 'Before first request')
     with open('tips.json', 'r') as f:
