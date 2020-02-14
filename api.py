@@ -78,10 +78,10 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Добро пожаловать в навык с подсказками для игроков в Pathfinder. Спрашивай, что тебе интересно!'
         return
 
-    tip = next((x for x in tips if x.qualify(req['request']['original_utterance'].lower())),
-               Tip([],[], 'Вопрос не ясен, попробуйте перефразировать'))
+    response = next((x for x in tips if x.qualify(req['request']['original_utterance'].lower())),
+               Tip([],[], 'Вопрос не ясен, попробуйте перефразировать')).response()
 
-    res['response']['text'] = tip.response()
+    res['response']['text'] = response
 
     return
 
