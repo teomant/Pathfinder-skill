@@ -10,11 +10,22 @@ import logging
 from flask import Flask, request
 app = Flask(__name__)
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 # Хранилище данных о сессиях.
 sessionStorage = {}
+
+# Подсказки
+tips = []
+
+@app.before_first_request()
+def initTips():
+    logging.log(logging.INFO, 'Before first request')
+    with open('tips.json', 'r') as f:
+        loaded_json = json.load(f)
+        for x in loaded_json:
+            tips.append(Tip(x['confirm'], x['decline'], x['response']))
+
 
 # Задаем параметры приложения Flask.
 @app.route("/", methods=['POST'])
@@ -64,56 +75,26 @@ def handle_dialog(req, res):
         # Это новый пользователь.
         # Инициализируем сессию и поприветствуем его.
 
-        sessionStorage[user_id] = {
-            'suggests': [
-                "Не хочу.",
-                "Не буду.",
-                "Отстань!",
-            ]
-        }
-
-        res['response']['text'] = 'Привет! Купи слона!'
-        res['response']['buttons'] = get_suggests(user_id)
+        res['response']['text'] = 'Добро пожаловать в навык с подсказками для игроков в Pathfinder. Спрашивай, что тебе интересно!'
         return
 
-    # Обрабатываем ответ пользователя.
-    if req['request']['original_utterance'].lower() in [
-        'ладно',
-        'куплю',
-        'покупаю',
-        'хорошо',
-    ]:
-        # Пользователь согласился, прощаемся.
-        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
-        return
+    tip = next((x for x in tips if x.qualify(req['request']['original_utterance'].lower())),
+               Tip([],[], 'Вопрос не ясен, попробуйте перефразировать'))
 
-    # Если нет, то убеждаем его купить слона!
-    res['response']['text'] = 'Все говорят "%s", а ты купи слона!' % (
-        req['request']['original_utterance']
-    )
-    res['response']['buttons'] = get_suggests(user_id)
+    res['response']['text'] = tip.response()
 
-# Функция возвращает две подсказки для ответа.
-def get_suggests(user_id):
-    session = sessionStorage[user_id]
+    return
 
-    # Выбираем две первые подсказки из массива.
-    suggests = [
-        {'title': suggest, 'hide': True}
-        for suggest in session['suggests'][:2]
-    ]
 
-    # Убираем первую подсказку, чтобы подсказки менялись каждый раз.
-    session['suggests'] = session['suggests'][1:]
-    sessionStorage[user_id] = session
+class Tip:
 
-    # Если осталась только одна подсказка, предлагаем подсказку
-    # со ссылкой на Яндекс.Маркет.
-    if len(suggests) < 2:
-        suggests.append({
-            "title": "Ладно",
-            "url": "https://market.yandex.ru/search?text=слон",
-            "hide": True
-        })
+    def __init__(self, confirm, decline, response):
+        self.confirm = confirm
+        self.decline = decline
+        self.response = response
 
-    return suggests
+    def qualify(self, text):
+        return any(x in text for x in self.confirm) and not any(x in text for x in self.decline)
+
+    def response(self):
+        return self.response
