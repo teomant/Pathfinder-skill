@@ -24,7 +24,7 @@ def initTips():
     with open('tips.json', 'r') as f:
         loaded_json = json.load(f)
         for x in loaded_json:
-            tips.append(Tip(x['confirm'], x['decline'], x['response']))
+            tips.append(Tip(x['name'], x['type'], x['confirm'], x['decline'], x['response']))
 
 
 # Задаем параметры приложения Flask.
@@ -77,18 +77,45 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Добро пожаловать в навык с подсказками для игроков в Pathfinder. Спрашивай, что тебе интересно!'
         return
 
-    res['response']['text'] = next((x for x in tips if x.qualify(req['request']['original_utterance'].lower())),
-               Tip([],[], 'Вопрос не ясен, попробуйте перефразировать')).response
+    # Ищем по типу и имени
+    found_by_type_and_name = [x for x in tips if x.qualify_by_type_and_name(req['request']['command'].lower())]
+
+    if len(found_by_type_and_name) == 1:
+        # Если нашли конкретный - возвращаем
+        res['response']['text'] = found_by_type_and_name[0].response
+        return
+
+    # Ищем по ключевым словам
+    found_by_qualify = [x for x in tips if x.qualify(req['request']['command'].lower())]
+
+    if len(found_by_qualify) == 1:
+        # Если нашли только один - возвращаем его
+        res['response']['text'] = found_by_qualify[0].response
+        return
+
+    if len(found_by_qualify) > 1:
+        # Если нашли несколько - предлагаем уточнить
+        res['response']['text'] = '\n'.join([x.response for x in found_by_qualify])
+        return
+
+    # Если пришли сюда - ничего не нашли, надо уточнить запрос
+    res['response']['text'] = 'Не понял вопрос. Попробуйте перефразировать'
 
     return
 
 
 class Tip:
 
-    def __init__(self, confirm, decline, response):
+    def __init__(self, name, type, confirm, decline, response):
+        self.name = name
+        self.type = type
+        self.confirm = confirm
         self.confirm = confirm
         self.decline = decline
         self.response = response
 
     def qualify(self, text):
-        return any(x in text for x in self.confirm) and not any(x in text for x in self.decline)
+        return any(x.lower() in text for x in self.confirm) and not any(x.lower() in text for x in self.decline)
+
+    def qualify_by_type_and_name(self, text):
+        return self.type.lower() + ' ' + self.name.lower() == text
