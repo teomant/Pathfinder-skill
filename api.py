@@ -95,7 +95,7 @@ def handle_dialog(req, res):
 
     if len(found_by_qualify) > 1:
         # Если нашли несколько - предлагаем уточнить
-        res['response']['text'] = '\n'.join([x.response for x in found_by_qualify])
+        res['response']['text'] = 'Возможно, вы имели ввиду: ' + '\n'.join([x.type + ': ' + x.response for x in found_by_qualify])
         return
 
     # Если пришли сюда - ничего не нашли, надо уточнить запрос
