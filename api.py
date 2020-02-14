@@ -41,6 +41,21 @@ def main():
         indent=2
     )
 
+# Задаем параметры приложения Flask.
+@app.route("/", methods=['GET'])
+
+def open_main():
+
+    response = {
+        "online": True
+    }
+
+    return json.dumps(
+        response,
+        ensure_ascii=False,
+        indent=2
+    )
+
 # Функция для непосредственной обработки диалога.
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
