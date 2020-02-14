@@ -69,7 +69,6 @@ def open_main():
 
 # Функция для непосредственной обработки диалога.
 def handle_dialog(req, res):
-    user_id = req['session']['user_id']
 
     if req['session']['new']:
         # Это новый пользователь.
@@ -78,10 +77,8 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Добро пожаловать в навык с подсказками для игроков в Pathfinder. Спрашивай, что тебе интересно!'
         return
 
-    response = next((x for x in tips if x.qualify(req['request']['original_utterance'].lower())),
-               Tip([],[], 'Вопрос не ясен, попробуйте перефразировать')).response()
-
-    res['response']['text'] = response
+    res['response']['text'] = next((x for x in tips if x.qualify(req['request']['original_utterance'].lower())),
+               Tip([],[], 'Вопрос не ясен, попробуйте перефразировать')).response
 
     return
 
@@ -95,6 +92,3 @@ class Tip:
 
     def qualify(self, text):
         return any(x in text for x in self.confirm) and not any(x in text for x in self.decline)
-
-    def response(self):
-        return self.response
