@@ -24,7 +24,7 @@ def initTips():
     with open('tips.json', 'r') as f:
         loaded_json = json.load(f)
         for x in loaded_json:
-            tips.append(Tip(x['name'], x['confirm'], x['decline'], x['response'], x['type'], x['circle'], x['classes']))
+            tips.append(Tip(x['name'], x['confirm'], x['decline'], x['response']))
 
 
 # Задаем параметры приложения Flask.
@@ -106,7 +106,9 @@ def handle_dialog(req, res):
 
 class Tip:
 
-    def __init__(self, name, confirm, decline, response, type='Разное', circle=0, classes=[]):
+    def __init__(self, name, confirm, decline, response, type='Разное', circle=0, classes=None):
+        if classes is None:
+            classes = []
         self.name = name
         self.type = type
         self.confirm = confirm
