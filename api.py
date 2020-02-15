@@ -106,7 +106,7 @@ def handle_dialog(req, res):
 
 class Tip:
 
-    def __init__(self, name, confirm, decline, response, type = 'Разное', circle = 0, classes = []):
+    def __init__(self, name, confirm, decline, response, type='Разное', circle=0, classes=[]):
         self.name = name
         self.type = type
         self.confirm = confirm
