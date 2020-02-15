@@ -24,7 +24,7 @@ def initTips():
     with open('tips.json', 'r') as f:
         loaded_json = json.load(f)
         for x in loaded_json:
-            tips.append(Tip(x['name'], x['type'], x['confirm'], x['decline'], x['response']))
+            tips.append(Tip(x['name'], x['confirm'], x['decline'], x['response'], x['type'], x['circle'], x['classes']))
 
 
 # Задаем параметры приложения Flask.
@@ -106,16 +106,18 @@ def handle_dialog(req, res):
 
 class Tip:
 
-    def __init__(self, name, type, confirm, decline, response):
+    def __init__(self, name, confirm, decline, response, type = 'Разное', circle = 0, classes = []):
         self.name = name
         self.type = type
         self.confirm = confirm
         self.confirm = confirm
         self.decline = decline
         self.response = response
+        self.circle = circle
+        self.classes = classes
 
     def qualify(self, text):
-        return any(x.lower() in text for x in self.confirm) and not any(x.lower() in text for x in self.decline)
+        return (any(x.lower() in text for x in self.confirm) or (self.name.lower() in text)) and not any(x.lower() in text for x in self.decline)
 
     def qualify_by_type_and_name(self, text):
         return self.type.lower() + ' ' + self.name.lower() == text
