@@ -23,8 +23,14 @@ def initTips():
     logging.log(logging.INFO, 'Before first request')
     with open('tips.json', 'r') as f:
         loaded_json = json.load(f)
-        for x in loaded_json:
-            tips.append(Tip(x['name'], x['confirm'], x['decline'], x['response']))
+        for tip_json in loaded_json:
+            tip = Tip(tip_json['name'], tip_json['type'], tip_json['confirm'], tip_json['decline'], tip_json['response'])
+            if 'classes' in tip_json:
+                tip.classes = tip_json['classes']
+            if 'circle' in tip_json:
+                tip.circle = tip_json['circle']
+
+            tips.append(tip)
 
 
 # Задаем параметры приложения Flask.
@@ -106,17 +112,15 @@ def handle_dialog(req, res):
 
 class Tip:
 
-    def __init__(self, name, confirm, decline, response, type='Разное', circle=0, classes=None):
-        if classes is None:
-            classes = []
+    def __init__(self, name, type, confirm, decline, response):
         self.name = name
         self.type = type
         self.confirm = confirm
-        self.confirm = confirm
         self.decline = decline
         self.response = response
-        self.circle = circle
-        self.classes = classes
+
+        self.circle = None
+        self.classes = []
 
     def qualify(self, text):
         return (any(x.lower() in text for x in self.confirm) or (self.name.lower() in text)) and not any(x.lower() in text for x in self.decline)
