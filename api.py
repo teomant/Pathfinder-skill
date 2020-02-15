@@ -83,20 +83,22 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Добро пожаловать в навык с подсказками для игроков в Pathfinder. Спрашивай, что тебе интересно!'
         return
 
+    text = req['request']['command'].lower().replace(':', ' ')
+
     # Ищем по типу и имени
-    found_by_type_and_name = [x for x in tips if x.qualify_by_type_and_name(req['request']['command'].lower())]
+    found_by_type_and_name = [x for x in tips if x.qualify_by_type_and_name(text)]
 
     if len(found_by_type_and_name) == 1:
         # Если нашли конкретный - возвращаем
-        res['response']['text'] = found_by_type_and_name[0].response
+        res['response']['text'] = found_by_type_and_name[0].answer()
         return
 
     # Ищем по ключевым словам
-    found_by_qualify = [x for x in tips if x.qualify(req['request']['command'].lower())]
+    found_by_qualify = [x for x in tips if x.qualify(text)]
 
     if len(found_by_qualify) == 1:
         # Если нашли только один - возвращаем его
-        res['response']['text'] = found_by_qualify[0].response
+        res['response']['text'] = found_by_qualify[0].answer()
         return
 
     if len(found_by_qualify) > 1:
@@ -119,7 +121,7 @@ class Tip:
         self.decline = decline
         self.response = response
 
-        self.circle = None
+        self.circle = []
         self.classes = []
 
     def qualify(self, text):
@@ -127,3 +129,7 @@ class Tip:
 
     def qualify_by_type_and_name(self, text):
         return self.type.lower() + ' ' + self.name.lower() == text
+
+
+    def answer(self):
+        return self.response + ('Круг: ' + ','.join(self.circle)) if self.type.lower() == 'заклинание' else ''
