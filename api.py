@@ -132,4 +132,4 @@ class Tip:
 
 
     def answer(self):
-        return self.response + ('Круг: ' + ','.join(self.circle)) if self.type.lower() == 'заклинание' else ''
+        return self.response + (' Круг: ' + ', '.join(self.circle)) if self.type.lower() == 'заклинание' else ''
